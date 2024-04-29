@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 
 @Service
@@ -27,19 +29,9 @@ public class KeycloakAdminClientService {
     }
 
     public Response createKeycloakUser(CreateUserRequest user) {
+        UserRepresentation userRepresentation = mapUserRepo(user);
         UsersResource usersResource = kcProvider.getInstance().realm(realm).users();
-        CredentialRepresentation credentialRepresentation = createPasswordCredentials(user.getPassword());
-
-        UserRepresentation kcUser = new UserRepresentation();
-        kcUser.setUsername(user.getEmail());
-        kcUser.setCredentials(Collections.singletonList(credentialRepresentation));
-        kcUser.setFirstName(user.getFirstname());
-        kcUser.setLastName(user.getLastname());
-        kcUser.setEmail(user.getEmail());
-        kcUser.setEnabled(true);
-        kcUser.setEmailVerified(false);
-
-        Response response = usersResource.create(kcUser);
+        Response response = usersResource.create(userRepresentation);
 
         if (response.getStatus() == 201) {
             //If you want to save the user to your other database, do it here, for example:
@@ -57,12 +49,21 @@ public class KeycloakAdminClientService {
 
     }
 
-    private static CredentialRepresentation createPasswordCredentials(String password) {
-        CredentialRepresentation passwordCredentials = new CredentialRepresentation();
-        passwordCredentials.setTemporary(false);
-        passwordCredentials.setType(CredentialRepresentation.PASSWORD);
-        passwordCredentials.setValue(password);
-        return passwordCredentials;
+    private UserRepresentation mapUserRepo(CreateUserRequest user){
+        UserRepresentation kcUser = new UserRepresentation();
+        kcUser.setUsername(user.getEmail());
+        kcUser.setFirstName(user.getFirstname());
+        kcUser.setLastName(user.getLastname());
+        kcUser.setEmail(user.getEmail());
+        kcUser.setEnabled(true);
+        kcUser.setEmailVerified(false);
+        List<CredentialRepresentation> creds=new ArrayList<>();
+        CredentialRepresentation cred = new CredentialRepresentation();
+        cred.setTemporary(false);
+        cred.setValue(user.getPassword());
+        creds.add(cred);
+        kcUser.setCredentials(creds);
+        return kcUser;
     }
 
 

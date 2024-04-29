@@ -20,7 +20,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Response;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/public")
 public class UserController {
     private final KeycloakAdminClientService kcAdminClient;
 

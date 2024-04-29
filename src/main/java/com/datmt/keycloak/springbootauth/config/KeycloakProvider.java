@@ -21,8 +21,14 @@ public class KeycloakProvider {
     public String realm;
     @Value("${keycloak.resource}")
     public String clientID;
+    @Value("${grant-type}")
+    public String grantType;
     @Value("${keycloak.credentials.secret}")
     public String clientSecret;
+    @Value("${name}")
+    public  String name;
+    @Value("${password}")
+    public String password;
 
     private static Keycloak keycloak = null;
 
@@ -30,6 +36,8 @@ public class KeycloakProvider {
     }
 
     public Keycloak getInstance() {
+
+
         if (keycloak == null) {
 
             return KeycloakBuilder.builder()
@@ -37,7 +45,7 @@ public class KeycloakProvider {
                     .serverUrl(serverURL)
                     .clientId(clientID)
                     .clientSecret(clientSecret)
-                    .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
+                    .grantType(grantType).password(password).username(name)
                     .build();
         }
         return keycloak;
