@@ -3,16 +3,19 @@ package com.datmt.keycloak.springbootauth.service;
 import com.datmt.keycloak.springbootauth.config.KeycloakProvider;
 import com.datmt.keycloak.springbootauth.http.requests.CreateUserRequest;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.common.util.CollectionUtil;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
+
+import java.util.Collection;
 import java.util.List;
 
 
@@ -64,6 +67,36 @@ public class KeycloakAdminClientService {
         creds.add(cred);
         kcUser.setCredentials(creds);
         return kcUser;
+    }
+
+    //fetch all user
+
+    public  List<CreateUserRequest>  getUser(){
+        List<UserRepresentation> userRepresentations = kcProvider.getInstance().realm(realm).users().list();
+
+        return mapUsers(userRepresentations);
+    }
+
+    private List<CreateUserRequest> mapUsers(List<UserRepresentation> userRepresentations) {
+
+        List<CreateUserRequest> users=new ArrayList<>();
+
+        if(!userRepresentations.isEmpty()){
+            userRepresentations.forEach(userRepo->{
+                users.add(mapUser(userRepo));
+            });
+        }
+
+        return users;
+    }
+
+    private CreateUserRequest mapUser(UserRepresentation userRepresentation){
+        CreateUserRequest user=new CreateUserRequest();
+        user.setFirstname(userRepresentation.getFirstName());
+        user.setLastname(userRepresentation.getLastName());
+        user.setUsername(userRepresentation.getUsername());
+        user.setEmail(userRepresentation.getEmail());
+        return user;
     }
 
 
