@@ -59,7 +59,34 @@ public class UserController {
     public  List<CreateUserRequest> getUsers(){
         return kcAdminClient.getUser();
     }
+    @GetMapping("/user/{id}")
+    public  CreateUserRequest getUser(@PathVariable("id") String id){
+        return kcAdminClient.getUserById(id);
+    }
 
+    @PutMapping("/user-update")
+    public ResponseEntity<?> updateUser(@NotNull @RequestBody CreateUserRequest user){
+        boolean b = kcAdminClient.updateUser(user);
+        if (b){
+            return ResponseEntity.status(HttpStatus.CREATED).body("User Successfully Updated");
+
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY).body("Something Went Wrong!");
+        }
+    }
+
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable("id") String id){
+        boolean b = kcAdminClient.deleteUser(id);
+        if (b){
+            return ResponseEntity.status(HttpStatus.CREATED).body("User Successfully Deleted");
+
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY).body("Something Went Wrong!");
+        }
+    }
 	
 
 }

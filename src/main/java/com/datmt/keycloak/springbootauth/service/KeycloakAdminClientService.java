@@ -2,25 +2,22 @@ package com.datmt.keycloak.springbootauth.service;
 
 import com.datmt.keycloak.springbootauth.config.KeycloakProvider;
 import com.datmt.keycloak.springbootauth.http.requests.CreateUserRequest;
+import com.datmt.keycloak.springbootauth.mapper.UserMapper;
 import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.common.util.CollectionUtil;
-import org.keycloak.representations.idm.CredentialRepresentation;
+
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
+
 
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.ArrayList;
 
-import java.util.Collection;
 import java.util.List;
 
 
 @Service
 public class KeycloakAdminClientService {
+
     @Value("${keycloak.realm}")
     public String realm;
 
@@ -32,7 +29,7 @@ public class KeycloakAdminClientService {
     }
 
     public Response createKeycloakUser(CreateUserRequest user) {
-        UserRepresentation userRepresentation = mapUserRepo(user);
+        UserRepresentation userRepresentation = UserMapper.mapUserRepo(user);
         UsersResource usersResource = kcProvider.getInstance().realm(realm).users();
         Response response = usersResource.create(userRepresentation);
 
@@ -52,52 +49,52 @@ public class KeycloakAdminClientService {
 
     }
 
-    private UserRepresentation mapUserRepo(CreateUserRequest user){
-        UserRepresentation kcUser = new UserRepresentation();
-        kcUser.setUsername(user.getEmail());
-        kcUser.setFirstName(user.getFirstname());
-        kcUser.setLastName(user.getLastname());
-        kcUser.setEmail(user.getEmail());
-        kcUser.setEnabled(true);
-        kcUser.setEmailVerified(false);
-        List<CredentialRepresentation> creds=new ArrayList<>();
-        CredentialRepresentation cred = new CredentialRepresentation();
-        cred.setTemporary(false);
-        cred.setValue(user.getPassword());
-        creds.add(cred);
-        kcUser.setCredentials(creds);
-        return kcUser;
-    }
 
     //fetch all user
 
     public  List<CreateUserRequest>  getUser(){
         List<UserRepresentation> userRepresentations = kcProvider.getInstance().realm(realm).users().list();
-
-        return mapUsers(userRepresentations);
+        return UserMapper.mapUsers(userRepresentations);
     }
 
-    private List<CreateUserRequest> mapUsers(List<UserRepresentation> userRepresentations) {
 
-        List<CreateUserRequest> users=new ArrayList<>();
 
-        if(!userRepresentations.isEmpty()){
-            userRepresentations.forEach(userRepo->{
-                users.add(mapUser(userRepo));
-            });
+
+    public CreateUserRequest getUserById(String userId){
+        UserRepresentation representation = kcProvider.getInstance().realm(realm).users().get(userId).toRepresentation();
+        return UserMapper.mapUser(representation);
+    }
+
+    public boolean updateUser(CreateUserRequest user){
+        boolean f=false;
+        try{
+            kcProvider.getInstance().
+                    realm(realm)
+                    .users()
+                    .get(user.getId()).update(UserMapper.mapUserRepo(user));
+            f=true;
         }
-
-        return users;
+        catch (Exception e){
+          f=false;
+        }
+        return f;
     }
 
-    private CreateUserRequest mapUser(UserRepresentation userRepresentation){
-        CreateUserRequest user=new CreateUserRequest();
-        user.setFirstname(userRepresentation.getFirstName());
-        user.setLastname(userRepresentation.getLastName());
-        user.setUsername(userRepresentation.getUsername());
-        user.setEmail(userRepresentation.getEmail());
-        return user;
+    public  boolean deleteUser(String id){
+        boolean  f=false;
+        try{
+
+            kcProvider.getInstance().realm(realm).users().delete(id);
+            f=true;
+        }
+        catch (Exception e){
+            f=false;
+        }
+        return f;
     }
+
+
+
 
 
 }

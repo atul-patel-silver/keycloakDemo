@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 
 public class CreateUserRequest {
+    String id;
     String username;
     String password;
     String email;
